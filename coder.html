@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        /* Canvas'ı ekranın ortasına hizala ve arkaplan rengini ayarla */
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #333;
+        }
+        .canvas {
+            border: 2px solid #000;
+            background-color: white;
+            border-radius: 20px;
+        }
+
+        /* Düğme stilini ayarla */
+        .temizle, .pixels, .kaydet {
+            height: 40px;
+            width: 100px;
+            padding: 10px;
+            background-color: white;
+            color: #333;
+            border: none;
+            position: relative;
+            top: -300px;
+            left: -300px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-radius: 20px;
+        }
+
+        /* Düğme hover efekti */
+        .temizle:hover, .pixels:hover, .kaydet:hover {
+            background-color: green;
+        }
+
+        #colorPicker {
+            position: relative;
+            top: -300px;
+            left: -400px;
+        }
+
+        #lineWidth {
+            position: relative;
+            top: -300px;
+            left: -600px;
+            border: 1px solid white;
+        }
+    </style>
+    <title>Altf4 | photo editor</title>
+</head>
+<body>
+    <canvas class="canvas"></canvas>
+    <input type="color" id="colorPicker">
+    <input type="range" id="lineWidth" min="1" max="20" value="5">
+    <button class="temizle">Temizle</button>
+    <button class="pixels">Pixel</button>
+    <button class="kaydet">Kaydet</button>
+    
+    <script>
+        var canvas = document.querySelector('.canvas');
+        var ctx = canvas.getContext('2d');
+        var colorPicker = document.getElementById('colorPicker');
+        var lineWidthInput = document.getElementById('lineWidth');
+        var temizleButton = document.querySelector('.temizle');
+        var pixelsButton = document.querySelector('.pixels');
+        var kaydetButton = document.querySelector('.kaydet');
+        var isDrawing = false;
+
+        // Canvas boyutunu ayarlayın
+        canvas.width = 950; // Örnek olarak 400 piksel genişlik
+        canvas.height = 500; // Örnek olarak 400 piksel yükseklik
+
+        // Çizgi rengini ve kalınlığını ayarlayın
+        ctx.strokeStyle = colorPicker.value; // Başlangıçta seçilen rengi kullanın
+        ctx.lineWidth = lineWidthInput.value; // Başlangıçta seçilen kalınlığı kullanın
+
+        // Color picker'dan seçilen rengi ve kalınlığı güncelleyin
+        colorPicker.addEventListener('input', function() {
+            ctx.strokeStyle = colorPicker.value;
+        });
+
+        lineWidthInput.addEventListener('input', function() {
+            ctx.lineWidth = lineWidthInput.value;
+        });
+
+        // Canvas temizleme işlevi
+        temizleButton.addEventListener('click', function() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Canvas'ı temizle
+        });
+
+        // Canvas üzerinde çizim işlevleri
+        canvas.addEventListener('mousedown', function(e) {
+            isDrawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top);
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            if (!isDrawing) return;
+            ctx.lineTo(e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top);
+            ctx.stroke();
+        });
+
+        canvas.addEventListener('mouseup', function() {
+            isDrawing = false;
+            ctx.closePath();
+        });
+
+        canvas.addEventListener('mouseleave', function() {
+            isDrawing = false;
+            ctx.closePath();
+        });
+
+        // Pixel işlevi
+        pixelsButton.addEventListener('click', function() {
+            // Canvas'ı piksellemek için özel bir işlevi buraya ekleyebilirsiniz
+            var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var data = imageData.data;
+
+            for (var i = 0; i < data.length; i += 4) {
+                // Veri içindeki her pikselin rengini istediğiniz şekilde değiştirin
+                // Örneğin, her pikseli siyah-beyaz yapabilirsiniz:
+                var brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                data[i] = brightness;
+                data[i + 1] = brightness;
+                data[i + 2] = brightness;
+            }
+        });
+
+        // Kaydet işlevi
+        kaydetButton.addEventListener('click', function() {
+            // Canvas içeriğini bir resim dosyası olarak kaydetmek için özel bir işlevi buraya ekleyebilirsiniz
+            var link = document.createElement('a');
+            link.href = canvas.toDataURL(); // Canvas içeriğini bir veri URL'sine dönüştürün
+            link.download = 'my_drawing.png'; // İndirilen dosyanın adını ayarlayın
+            link.click(); // Otomatik olarak indirme işlemi başlatın
+        });
+    </script>
+</body>
+</html>
